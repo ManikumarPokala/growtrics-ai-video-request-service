@@ -23,10 +23,11 @@ This implementation intentionally focuses on a small but coherent backend slice 
 
 This prototype intentionally optimizes for the following architectural values:
 - **Simplicity over Infrastructure Complexity**: Prefers in-process queuing and locked memory persistence to minimize setup friction and dependencies, allowing focus on core job states.
-- **Deterministic Rendering over AI-Generated Video**: Uses programmatic 24fps drawings combined with synthesized voice clips to ensure repeatable, consistent, and visually clean educational content, eliminating the unpredictable quality of current generative video models.
+- **Programmatic Educational Rendering over AI Video Generation**: Uses programmatic 24fps drawings combined with synthesized voice clips to ensure repeatable, consistent, and visually clean educational content, eliminating the unpredictable quality of current generative video models.
 - **Low Operational Cost**: Leverages local open-source models (Ollama) and local Python rendering, preventing massive API cost run-ups.
 - **Clear Separation of Concerns**: Decouples API handlers, database access, background executors, and rendering providers behind strict interfaces.
 - **Fail Fast & Self-Heal**: Storyboard JSON schemas are validated immediately at the entry point using Pydantic, triggering automated repair loops before scheduling rendering cycles.
+- **Prototype First**: This implementation intentionally delivers the smallest coherent backend slice that satisfies the challenge while preserving clear extension points for production evolution.
 
 ---
 
@@ -201,7 +202,7 @@ To dynamically determine if a compiled video meets quality thresholds, we apply 
 
 ## Assumptions
 
-our architectural design is based on the following project assumptions:
+Our architectural design is based on the following project assumptions:
 - **Scope Limit**: The prototype only requires supporting the 3 specified chemistry queries.
 - **Job Constraints**: A job processes one video per request, with a maximum video duration of 30 seconds.
 - **Artifact Storage**: Videos are saved locally in the server's workspace directories and served directly.
@@ -712,60 +713,74 @@ MAX_RETRIES=3
 - **Tech Stack**: FastAPI, Pillow (PIL), Prototype TTS Provider (gTTS), FFmpeg, Ollama.
 
 ```
-Growtrics-Backend/
-├── main.py                # FastAPI endpoints & static file serving
-├── config.py              # Configurations & environment validation
-├── models.py              # Pydantic schemas (Job, Request, Storyboard)
-├── database.py            # InMemoryJobRepository (Thread-safe)
-├── requirements.txt       # Project dependencies
-├── README.md              # Setup & run instructions
+growtrics-ai-video-request-service/
+├── app/
+│   ├── __init__.py
+│   ├── main.py                # FastAPI endpoints entry point
+│   ├── api/
+│   │   ├── __init__.py
+│   │   └── routes.py          # FastAPI routes
+│   ├── core/
+│   │   ├── __init__.py
+│   │   ├── config.py          # Configurations & settings validation
+│   │   └── interfaces.py      # Core service provider interfaces
+│   ├── models/
+│   │   ├── __init__.py
+│   │   └── schemas.py         # Pydantic schemas (Job, Request, Storyboard)
+│   ├── repositories/
+│   │   ├── __init__.py
+│   │   └── database.py        # InMemoryJobRepository (Thread-safe)
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── llm.py             # Ollama structured JSON integration & retry-repair
+│   │   └── renderer.py        # 24fps PIL animation engine & ffmpeg stitcher
+│   ├── storyboards/
+│   │   ├── __init__.py
+│   │   └── content_registry.py # Generic registry & Chemistry fallback storyboards
+│   └── workers/
+│       ├── __init__.py
+│       └── scheduler.py       # Asynchronous background job worker (Process pool)
+├── requirements.txt           # Project dependencies
+├── README.md                  # Setup & run instructions
+├── .env.example               # Example configuration keys
 ├── docs/
-│   └── architecture.md    # Architecture overview (for hiring team)
-├── .env.example           # Example configuration keys
+│   └── architecture.md        # Architecture overview (for hiring team)
 ├── assets/
 │   └── fonts/
 │       └── Roboto-Regular.ttf # Bundled font for OS-agnostic rendering
-├── storyboards/
-│   ├── __init__.py
-│   └── content_registry.py # Generic registry & Chemistry prototype topics
-├── services/
-│   ├── __init__.py
-│   ├── scheduler.py       # Asynchronous background job worker (Process pool)
-│   ├── llm.py             # Ollama structured JSON integration & retry-repair
-│   └── renderer.py        # 24fps PIL animation engine & ffmpeg stitcher
 ├── tests/
 │   ├── __init__.py
-│   └── test_api.py        # Pytest test cases for the API and lifecycle
-├── static/                # Output directory for generated MP4 files
-└── temp/                  # Temp frames directory (cleaned up automatically)
+│   └── test_api.py            # Pytest test cases for the API and lifecycle
+├── static/                    # Output directory for generated MP4 files
+└── temp/                      # Temp frames directory (cleaned up automatically)
 ```
 
 ---
 
 ## Proposed Changes (Components)
 
-#### [MODIFY] config.py
+#### [MODIFY] app/core/config.py
 - Setup project configs, paths, and environment variable verifications.
 
-#### [MODIFY] models.py
-- Pydantic models for jobs, request payloads, and structural storyboards.
+#### [MODIFY] app/models/schemas.py
+- Pydantic models for jobs, request payloads, and storyboard schemas.
 
-#### [MODIFY] database.py
+#### [MODIFY] app/repositories/database.py
 - `BaseRepository` interface and thread-safe dictionary implementation (`InMemoryJobRepository`).
 
-#### [MODIFY] scheduler.py
+#### [MODIFY] app/workers/scheduler.py
 - Background worker task queue managing state transitions and `ProcessPoolExecutor` processes.
 
-#### [MODIFY] llm.py
+#### [MODIFY] app/services/llm.py
 - Ollama API connector payload integration and structural self-repair parsing loops.
 
-#### [MODIFY] renderer.py
-- **Programmatic animation renderer using reusable drawing primitives** (Registry pattern drawer callbacks) generating 24fps PIL frames synced with TTS audio lengths.
+#### [MODIFY] app/services/renderer.py
+- **Programmatic educational rendering engine using reusable drawing primitives** (Registry pattern drawer callbacks) generating 24fps PIL frames synced with TTS audio lengths.
 
-#### [MODIFY] content_registry.py
+#### [MODIFY] app/storyboards/content_registry.py
 - Hand-crafted storyboard registry structure managing Chemistry fallbacks, built to scale to Physics, Biology, and other disciplines.
 
-#### [MODIFY] main.py
+#### [MODIFY] app/main.py & app/api/routes.py
 - FastAPI routes setup, static directory server maps, error filters, and rate-limiting wrappers.
 
 ---
@@ -802,7 +817,7 @@ Your prototype must support these three learner queries end-to-end:
 ## Demo Walkthrough Script
 
 Reviewers can verify and reproduce system lifecycle events by following these walkthrough CLI commands:
-1. **Launch Server**: `uvicorn main:app --reload --port 8000`
+1. **Launch Server**: `uvicorn app.main:app --reload --port 8000`
 2. **Submit Request**:
    ```bash
    curl -X POST http://localhost:8000/api/v1/videos \
@@ -834,6 +849,6 @@ Reviewers can verify and reproduce system lifecycle events by following these wa
 - We will run the tests using `pytest`.
 
 ### Manual Verification
-- Start the server using `uvicorn main:app --reload`.
+- Start the server using `uvicorn app.main:app --reload`.
 - Run curl commands to request the three required queries.
 - Download the generated video files and play them to verify both visual and audio quality.
