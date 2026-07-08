@@ -53,3 +53,48 @@ growtrics-ai-video-request-service/
 - **Idempotency**: Normalize queries and reuse pre-generated completed video assets rather than running heavy CPU compiling pipelines again.
 - **Rate Limiting**: Sliding-window in-memory IP tracker rejecting clients exceeding 5 request submissions per minute (HTTP 429).
 
+---
+
+## Future Production Architecture: Scalability & Load Handling
+
+The current prototype is intentionally designed as a single-node deployment with an in-memory repository and background worker to satisfy the challenge scope. 
+
+For higher request volumes, the architecture is designed to support horizontal scaling by separating stateless API instances, asynchronous workers, database storage, and object storage:
+
+### 1. API Layer
+- Deploy multiple FastAPI instances behind a Load Balancer.
+- Keep API instances stateless to allow rapid horizontal auto-scaling.
+
+### 2. Queue Layer
+- Replace the in-process queue with a centralized Redis + Celery queue or a managed cloud queue (e.g. AWS SQS, Google Cloud Tasks).
+- Allow multiple worker instances to process jobs concurrently.
+
+### 3. Persistence Layer
+- Replace the in-memory repository with PostgreSQL or another durable relational datastore.
+- Store job metadata centrally so all API instances share the same state.
+
+### 4. Media Storage
+- Store generated videos in object storage (Google Cloud Storage or Amazon S3).
+- Deliver videos through a CDN to reduce latency and offload traffic from the compute servers.
+
+### 5. Auto Scaling
+- Scale API instances based on request rate.
+- Scale worker instances based on queue depth.
+
+### Architectural Scaling Map
+```mermaid
+graph TD
+    Clients[Clients] --> LB[Load Balancer]
+    LB --> API1[API Server 1]
+    LB --> API2[API Server 2]
+    API1 --> DB[(Shared PostgreSQL Database)]
+    API2 --> DB
+    API1 --> Queue[Shared Redis Message Queue]
+    API2 --> Queue
+    Queue --> Worker1[Distributed Worker 1]
+    Queue --> Worker2[Distributed Worker 2]
+    Worker1 --> Storage[S3 / Cloud Object Storage]
+    Worker2 --> Storage
+```
+
+
