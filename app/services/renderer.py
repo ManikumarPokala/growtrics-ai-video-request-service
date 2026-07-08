@@ -393,7 +393,7 @@ class VideoRendererProvider(IVideoRendererProvider):
 
     def synthesize_speech(self, text: str, output_path: str, locale: str = "en-US") -> str:
         """
-        Generate audio speech file for the scene. Falls back to generating silent tone wav on failure.
+        Generate audio speech file for the scene. Falls back to native macOS say utility or silent tone WAV on failure.
         """
         logger.info(f"Renderer: Synthesizing voiceover for text: '{text[:50]}...'")
         try:
@@ -403,7 +403,22 @@ class VideoRendererProvider(IVideoRendererProvider):
             logger.info(f"gTTS speech saved to: {output_path}")
             return output_path
         except Exception as e:
-            logger.warning(f"gTTS Speech synthesis failed: {str(e)}. Generating offline fallback silent wave file.")
+            logger.warning(f"gTTS Speech synthesis failed: {str(e)}. Attempting local native speech synthesis...")
+            # Try macOS native say utility
+            try:
+                aiff_temp = output_path.replace(".mp3", ".aiff").replace(".wav", ".aiff")
+                cmd = ["/usr/bin/say", "-o", aiff_temp, text]
+                result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                if result.returncode == 0 and os.path.exists(aiff_temp):
+                    # Convert AIFF to target audio format using FFmpeg
+                    convert_cmd = ["ffmpeg", "-y", "-i", aiff_temp, "-threads", "2", output_path]
+                    subprocess.run(convert_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+                    os.remove(aiff_temp)
+                    logger.info(f"Native macOS say synthesized and transcoded speech to: {output_path}")
+                    return output_path
+            except Exception as say_err:
+                logger.warning(f"Native macOS say synthesis failed: {str(say_err)}. Generating silent WAV file.")
+
             # Calculate word count to estimate speaking duration (~150 words per minute)
             word_count = len(text.split())
             estimated_duration = max(3.0, (word_count / 150.0) * 60.0)
