@@ -787,7 +787,15 @@ growtrics-ai-video-request-service/
 ---
 
 ## Future Roadmap (Production Upgrades)
-- **Pedagogical Efficacy (Future Evolution)**: Extend the storyboard generation layer into a lesson-planning system capable of generating learning objectives, analogies, misconception-aware explanations, and formative knowledge checks while reusing the existing rendering pipeline.
+- **Pedagogical Intelligence (Future Evolution)**: While this prototype focuses on generating accurate educational videos from learner queries, the next evolution of the platform is to improve *how concepts are taught*, not just *how they are rendered*. Future iterations may introduce a dedicated lesson-planning layer that generates structured educational experiences before storyboard creation.
+  Potential capabilities include:
+  - Defining clear learning objectives for each lesson.
+  - Breaking complex concepts into progressive teaching steps.
+  - Using analogies and real-world examples to improve understanding.
+  - Detecting common misconceptions and addressing them proactively.
+  - Generating brief knowledge-check questions during the lesson.
+  - Producing concise summaries and key takeaways at the end of each video.
+  This pedagogical planning layer would operate before storyboard generation while preserving the existing rendering, audio synthesis, and video compilation pipeline.
 - **Durable Queues**: Swapping background queues for distributed Celery workers with a Redis broker.
 - **Relational Storage**: PostgreSQL storage using SQLAlchemy.
 - **Object Storage**: S3/GCS asset uploading for edge CDN caching.
