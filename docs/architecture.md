@@ -52,3 +52,4 @@ growtrics-ai-video-request-service/
 ### 4. Idempotency & Rate Limiting
 - **Idempotency**: Normalize queries and reuse pre-generated completed video assets rather than running heavy CPU compiling pipelines again.
 - **Rate Limiting**: Sliding-window in-memory IP tracker rejecting clients exceeding 5 request submissions per minute (HTTP 429).
+

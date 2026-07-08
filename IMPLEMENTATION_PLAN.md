@@ -787,6 +787,7 @@ growtrics-ai-video-request-service/
 ---
 
 ## Future Roadmap (Production Upgrades)
+- **Pedagogical Efficacy (Future Evolution)**: Extend the storyboard generation layer into a lesson-planning system capable of generating learning objectives, analogies, misconception-aware explanations, and formative knowledge checks while reusing the existing rendering pipeline.
 - **Durable Queues**: Swapping background queues for distributed Celery workers with a Redis broker.
 - **Relational Storage**: PostgreSQL storage using SQLAlchemy.
 - **Object Storage**: S3/GCS asset uploading for edge CDN caching.
