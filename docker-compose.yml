@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=production
+      - PORT=8000
+      - HOST=0.0.0.0
+      - OLLAMA_HOST=http://host.docker.internal:11434
+      - OLLAMA_MODEL=qwen2.5:7b
+      - VIDEO_RESOLUTION_W=1280
+      - VIDEO_RESOLUTION_H=720
+      - VIDEO_FPS=24
+      - RATE_LIMIT_PER_MIN=5
+      - MAX_RETRIES=3
+    # Allow the container to easily connect to local Ollama running on host port 11434
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./static:/app/static
