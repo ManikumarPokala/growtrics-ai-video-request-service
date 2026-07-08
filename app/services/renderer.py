@@ -513,7 +513,7 @@ class VideoRendererProvider(IVideoRendererProvider):
             # Try macOS native say utility
             try:
                 aiff_temp = output_path.replace(".mp3", ".aiff").replace(".wav", ".aiff")
-                cmd = ["/usr/bin/say", "-o", aiff_temp, text]
+                cmd = ["/usr/bin/say", "-v", "Samantha", "-o", aiff_temp, text]
                 result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 if result.returncode == 0 and os.path.exists(aiff_temp):
                     # Convert AIFF to target audio format using FFmpeg
