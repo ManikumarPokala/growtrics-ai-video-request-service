@@ -358,11 +358,20 @@ def execute_frame_render_process(
     try:
         font = ImageFont.truetype(font_path, 22)
         bold_font = ImageFont.truetype(font_path, 26)
-        caption_font = ImageFont.truetype(font_path, 20)
+        
+        # Dynamically scale font size based on text length to prevent line overflows
+        cap_size = 20
+        if len(script_text) > 130:
+            cap_size = 15
+        elif len(script_text) > 90:
+            cap_size = 17
+            
+        caption_font = ImageFont.truetype(font_path, cap_size)
     except Exception:
         font = ImageFont.load_default()
         bold_font = ImageFont.load_default()
         caption_font = ImageFont.load_default()
+        cap_size = 20
 
     # Call drawing logic matching visual_type
     drawer_func = DRAWING_REGISTRY.get(visual_type, draw_default_scene)
@@ -376,9 +385,11 @@ def execute_frame_render_process(
     max_caption_w = int(width * 0.9)
     wrapped_lines = wrap_text(script_text, caption_font, max_caption_w)
     
+    # Calculate spacing and center text in caption bar
     start_y = height - caption_h + 15
-    for i, line in enumerate(wrapped_lines[:3]): # Max 3 lines limit
-        draw.text((width // 2, start_y + (i * 24)), line, fill="#ffffff", font=caption_font, anchor="mm")
+    line_spacing = cap_size + 4
+    for i, line in enumerate(wrapped_lines[:4]): # Allow up to 4 lines with smaller font size
+        draw.text((width // 2, start_y + (i * line_spacing)), line, fill="#ffffff", font=caption_font, anchor="mm")
         
     # Save output frame PNG
     img.save(output_path, "PNG")
@@ -441,8 +452,10 @@ class VideoRendererProvider(IVideoRendererProvider):
             logger.warning(f"Could not determine audio length. Defaulting to storyboard duration: {scene.duration}s")
             duration = scene.duration
             
-        total_frames = int(duration * self.fps)
-        logger.info(f"Scene processing: duration {duration:.2f}s, frame count {total_frames} frames.")
+        # Add 12 frames (0.5 second) of holding padding to ensure video is always longer than audio,
+        # preventing FFmpeg's -shortest flag from truncating the final words of the voiceover.
+        total_frames = math.ceil(duration * self.fps) + 12
+        logger.info(f"Scene processing: duration {duration:.2f}s, frame count {total_frames} frames (includes 12 frames padding).")
         
         # Create temp folder for frames
         frames_dir = Path(temp_dir) / "frames"
@@ -598,7 +611,7 @@ class VideoRendererProvider(IVideoRendererProvider):
         cmd = [
             "ffprobe", "-v", "error",
             "-select_streams", "v:0",
-            "-show_entries", "stream=width,height,r_frame_rate,duration",
+            "-show_entries", "stream=width,height,avg_frame_rate,duration",
             "-of", "csv=p=0",
             filepath
         ]
