@@ -796,6 +796,13 @@ growtrics-ai-video-request-service/
   - Generating brief knowledge-check questions during the lesson.
   - Producing concise summaries and key takeaways at the end of each video.
   This pedagogical planning layer would operate before storyboard generation while preserving the existing rendering, audio synthesis, and video compilation pipeline.
+- **AI Quality Evaluation Gate (Future Evolution)**: Transition from manual review to an automated **5-Layer Quality Verification Framework** utilizing an LLM-as-a-Judge evaluation service before video publishing:
+  - *Technical*: Automated container and codec checks (MP4, H.264, AAC, 1280x720, 24 FPS).
+  - *Visual*: Algorithmic margin checks, text contrast, and visual overlap detection.
+  - *Audio*: Speech presence validation, volume levels, and audio/video sync offsets.
+  - *Educational*: LLM evaluation of teaching logic, curriculum accuracy, and misconception resolution.
+  - *UX*: Pacing verification, scene-length checks, and cognitive load scorecards.
+  Videos scoring below 90% are automatically sent to a self-repair feedback loop for regeneration instead of being published.
 - **Durable Queues**: Swapping background queues for distributed Celery workers with a Redis broker.
 - **Relational Storage**: PostgreSQL storage using SQLAlchemy.
 - **Object Storage**: S3/GCS asset uploading for edge CDN caching.
