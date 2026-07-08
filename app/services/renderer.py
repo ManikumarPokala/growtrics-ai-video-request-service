@@ -314,6 +314,101 @@ def draw_covalent_interaction(draw: ImageDraw.ImageDraw, w: int, h: int, progres
     draw.rectangle([0, 0, w, 110], fill="#1a1a2e")
     draw.text((w // 2, 80), "Covalent Bond: Electron Sharing", fill="#33cc33", font=bold_font, anchor="mm")
 
+@register_drawer("photosynthesis_chloroplast")
+def draw_photosynthesis_chloroplast(draw: ImageDraw.ImageDraw, w: int, h: int, progress: float, font, bold_font):
+    # Dark forest/leaf green background
+    draw.rectangle([0, 0, w, h], fill="#0f2b20")
+    
+    # Title
+    draw.text((w // 2, 80), "Stage 1: Chloroplasts & Chlorophyll", fill="#a3e2c9", font=bold_font, anchor="mm")
+    
+    # Draw leaf cell outline
+    draw.rectangle([60, 130, w - 60, h - 120], outline="#4caf50", width=4)
+    draw.text((w // 2, 150), "Plant Leaf Cell", fill="#81c784", font=font, anchor="mm")
+    
+    # Draw chloroplast organelles (ovals)
+    num_chloroplasts = 3
+    for i in range(num_chloroplasts):
+        cx = w // 2 + (i - 1) * 200
+        cy = h // 2
+        # Pulsate size with progress
+        pulse = int(math.sin(progress * 2 * math.pi) * 8)
+        draw.ellipse([cx - 70 - pulse, cy - 40 - pulse, cx + 70 + pulse, cy + 40 + pulse], fill="#2e7d32", outline="#81c784", width=2)
+        draw.text((cx, cy), "Chloroplast", fill="#ffffff", font=font, anchor="mm")
+        
+    # Draw light rays from top-left
+    ray_progress = int(progress * 80)
+    for i in range(5):
+        start_x = 50 + i * 40
+        start_y = 0
+        end_x = start_x + 100 + ray_progress
+        end_y = 200 + ray_progress
+        draw.line([start_x, start_y, end_x, end_y], fill="#fdd835", width=3)
+    draw.text((100, 40), "Light Energy", fill="#fdd835", font=bold_font)
+
+@register_drawer("light_reaction")
+def draw_light_reaction(draw: ImageDraw.ImageDraw, w: int, h: int, progress: float, font, bold_font):
+    # Dark forest green background
+    draw.rectangle([0, 0, w, h], fill="#0f2b20")
+    
+    # Title
+    draw.text((w // 2, 80), "Stage 2: Splitting Water (H2O)", fill="#64b5f6", font=bold_font, anchor="mm")
+    
+    # Draw water molecule in center
+    mx, my = w // 2, h // 2
+    
+    # Split distance increases with progress
+    split_dist = int(progress * 120)
+    
+    # Draw Oxygen atom (red)
+    ox, oy = mx, my - split_dist // 2
+    draw.ellipse([ox - 40, oy - 40, ox + 40, oy + 40], fill="#e53935", outline="#ffffff", width=2)
+    draw.text((ox, oy), "O2", fill="#ffffff", font=bold_font, anchor="mm")
+    
+    # Draw two Hydrogen atoms moving away in opposite directions
+    hx1, hy1 = mx - 80 - split_dist, my + 30 + split_dist // 2
+    hx2, hy2 = mx + 80 + split_dist, my + 30 + split_dist // 2
+    
+    draw.ellipse([hx1 - 25, hy1 - 25, hx1 + 25, hy1 + 25], fill="#1e88e5", outline="#ffffff", width=2)
+    draw.text((hx1, hy1), "H+", fill="#ffffff", font=font, anchor="mm")
+    
+    draw.ellipse([hx2 - 25, hy2 - 25, hx2 + 25, hy2 + 25], fill="#1e88e5", outline="#ffffff", width=2)
+    draw.text((hx2, hy2), "H+", fill="#ffffff", font=font, anchor="mm")
+    
+    # Draw dashed connecting lines that fade out (only draw if progress is low)
+    if progress < 0.7:
+        draw.line([ox, oy, hx1, hy1], fill="#e0e0e0", width=2)
+        draw.line([ox, oy, hx2, hy2], fill="#e0e0e0", width=2)
+        
+    draw.text((w // 2, h // 2 + 150), "Oxygen gas is released!", fill="#ffffff", font=bold_font, anchor="mm")
+
+@register_drawer("glucose_production")
+def draw_glucose_production(draw: ImageDraw.ImageDraw, w: int, h: int, progress: float, font, bold_font):
+    # Dark forest green background
+    draw.rectangle([0, 0, w, h], fill="#0f2b20")
+    
+    # Title
+    draw.text((w // 2, 80), "Stage 3: Glucose Synthesis", fill="#a5d6a7", font=bold_font, anchor="mm")
+    
+    # Chloroplast reactor in center
+    rx, ry = w // 2, h // 2 + 20
+    draw.ellipse([rx - 150, ry - 80, rx + 150, ry + 80], fill="#1b5e20", outline="#81c784", width=3)
+    draw.text((rx, ry), "Calvin Cycle", fill="#ffffff", font=bold_font, anchor="mm")
+    
+    # Carbon Dioxide (CO2) entering from left
+    co2_x = 50 + int(progress * (rx - 150 - 50))
+    if co2_x < rx - 140:
+        draw.ellipse([co2_x - 30, ry - 30, co2_x + 30, ry + 30], fill="#ffb74d", outline="#ffffff", width=1)
+        draw.text((co2_x, ry), "CO2", fill="#ffffff", font=font, anchor="mm")
+        
+    # Glucose (Sugar) exiting from right
+    if progress > 0.4:
+        sugar_progress = (progress - 0.4) / 0.6
+        sugar_x = rx + 150 + int(sugar_progress * (w - 150 - (rx + 150)))
+        draw.ellipse([sugar_x - 35, ry - 35, sugar_x + 35, ry + 35], fill="#81c784", outline="#ffffff", width=2)
+        draw.text((sugar_x, ry), "Glucose", fill="#ffffff", font=font, anchor="mm")
+        draw.text((sugar_x, ry + 50), "C6H12O6", fill="#a5d6a7", font=font, anchor="mm")
+
 # Global Fallback Drawer
 def draw_default_scene(draw: ImageDraw.ImageDraw, w: int, h: int, progress: float, font, bold_font):
     draw.rectangle([0, 0, w, h], fill="#1a1a2e")

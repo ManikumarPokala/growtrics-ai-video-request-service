@@ -76,12 +76,35 @@ IONIC_VS_COVALENT_STORYBOARD = Storyboard(
     ]
 )
 
+PHOTOSYNTHESIS_STORYBOARD = Storyboard(
+    scenes=[
+        StoryboardScene(
+            visual_type="photosynthesis_chloroplast",
+            script="Inside leaf cells, chloroplasts capture light energy using chlorophyll to start energy conversion.",
+            duration=7.0
+        ),
+        StoryboardScene(
+            visual_type="light_reaction",
+            script="Using light energy, water molecules are split, releasing oxygen gas into the atmosphere.",
+            duration=8.0
+        ),
+        StoryboardScene(
+            visual_type="glucose_production",
+            script="Carbon dioxide is then combined with hydrogen to produce glucose, the plant's source of food.",
+            duration=8.0
+        )
+    ]
+)
+
 def get_fallback_storyboard(query: str) -> Storyboard:
     """
     Finds and returns a hand-crafted storyboard for the required Chemistry topics.
     """
     q = query.lower().strip()
-    if "ph scale" in q or "ph" in q:
+    if "photosynthesis" in q or "plant" in q or "chlorophyll" in q:
+        logger.info("Content Registry: Matching Photosynthesis fallback storyboard.")
+        return PHOTOSYNTHESIS_STORYBOARD
+    elif "ph scale" in q or "ph" in q:
         logger.info("Content Registry: Matching pH scale fallback storyboard.")
         return PH_SCALE_STORYBOARD
     elif "ionic" in q or "difference" in q:

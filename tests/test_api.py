@@ -32,6 +32,12 @@ def test_fallback_storyboard_lookup():
     assert len(sb_diff.scenes) == 3
     assert sb_diff.scenes[2].visual_type == "covalent_interaction"
 
+    sb_photo = get_fallback_storyboard("How does photosynthesis work?")
+    assert len(sb_photo.scenes) == 3
+    assert sb_photo.scenes[0].visual_type == "photosynthesis_chloroplast"
+    assert sb_photo.scenes[1].visual_type == "light_reaction"
+    assert sb_photo.scenes[2].visual_type == "glucose_production"
+
 def test_create_video_job_validation():
     # Query too short (< 10 chars)
     response = client.post("/api/v1/videos", json={"query": "short"})

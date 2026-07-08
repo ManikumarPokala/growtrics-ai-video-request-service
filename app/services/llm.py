@@ -90,6 +90,7 @@ Guidelines:
    - For pH scale questions: "ph_scale_overview", "acidic_solution", "basic_solution"
    - For Covalent bond questions: "atoms_intro", "electron_sharing", "molecule_formation"
    - For Ionic vs Covalent questions: "bond_comparison", "ionic_interaction", "covalent_interaction"
+   - For Photosynthesis questions: "photosynthesis_chloroplast", "light_reaction", "glucose_production"
 4. "script" is the spoken narration voiceover script for that scene.
 
 Ensure your response is valid JSON and contains no other characters."""
