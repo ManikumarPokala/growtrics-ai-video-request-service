@@ -267,21 +267,22 @@ The following component layout highlights the boundaries between the API routing
 
 ```mermaid
 graph TD
-    Client[Client Browser / curl / test_script.py] -->|1. Submit Query / Poll Status| main[main.py: Routes & Static Server]
-    main -->|2. Read / Write Job| db[database.py: InMemoryJobRepository]
-    main -->|3. Enqueue Job| scheduler[scheduler.py: Job Queue & Lock Manager]
-    scheduler -->|4. Consume Job| worker[Worker Thread: State Manager]
-    worker -->|5. Submit CPU Tasks| executor[ProcessPoolExecutor: CPU Isolation]
+    Client[Client Browser / curl / test_script.py] -->|1. Submit Query / Poll Status| main[app/main.py: App Entrypoint & Static Server]
+    main -->|2. Route Requests| routes[app/api/routes.py: API Router]
+    routes -->|3. Read / Write Job| db[app/repositories/database.py: InMemoryJobRepository]
+    routes -->|4. Enqueue Job| scheduler[app/workers/scheduler.py: Job Queue Manager]
+    scheduler -->|5. Consume Job| worker[Worker Thread: State Manager]
+    worker -->|6. Submit CPU Tasks| executor[ProcessPoolExecutor: CPU Isolation]
 
     subgraph Media & AI Generation Pipeline
-        executor -->|6. Storyboard JSON| llm[llm.py: Ollama / fallbacks]
-        executor -->|7. Programmatic Educational Rendering| renderer[renderer.py: PIL Animation Engine]
-        renderer -->|8. Speech synthesis| gtts[gTTS / tone fallback]
-        renderer -->|9. Stitch scenes| ffmpeg[FFmpeg CLI]
+        executor -->|7. Storyboard JSON| llm[app/services/llm.py: Ollama Provider]
+        executor -->|8. Programmatic Educational Rendering| renderer[app/services/renderer.py: PIL Animation Engine]
+        renderer -->|9. Speech synthesis| gtts[Prototype TTS Provider]
+        renderer -->|10. Stitch scenes| ffmpeg[FFmpeg CLI]
     end
 
-    ffmpeg -->|10. Final video file| main
-    main -->|11. Play MP4| Client
+    ffmpeg -->|11. Final video file| main
+    main -->|12. Play MP4| Client
 ```
 
 ### AI Generation Pipeline
@@ -394,7 +395,7 @@ sequenceDiagram
 ## Database Design
 
 ### Repository Interface Hierarchy
-To ensure storage scalability, the database module utilizes strict interface abstractions, facilitating painless migrations from local RAM to Postgres or Redis:
+To ensure storage scalability, the database module utilizes strict interface abstractions. BaseRepository is declared in app/repositories/database.py and implemented by InMemoryJobRepository, facilitating painless migrations from local RAM to Postgres or Redis:
 
 ```mermaid
 classDiagram
@@ -667,7 +668,7 @@ EXPOSE 8000
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
-### 2. Future Production Architecture
+### 2. Illustrative Production Evolution
 For scaling to production, the architecture migrates to Google Cloud Platform (GCP) or AWS:
 
 ```
