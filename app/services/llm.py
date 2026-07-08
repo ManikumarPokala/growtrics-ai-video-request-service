@@ -64,7 +64,10 @@ class OllamaLLMProvider(ILLMProvider):
                 if attempt < settings.max_retries:
                     current_prompt = self._build_repair_prompt(prompt, current_prompt, str(e))
                 else:
-                    logger.error(f"Exceeded max Ollama repair retries for query: '{query}'. Loading fallback storyboard.")
+                    logger.error(
+                        f"Ollama model '{self.model}' unavailable or request failed (Error: {str(e)}). "
+                        f"Switching to deterministic fallback storyboard for query: '{query}'."
+                    )
                     
         # Load local predefined subject fallback storyboard
         return get_fallback_storyboard(query)
